@@ -1,0 +1,87 @@
+[tasks.print_help]
+description = "Prints help information"
+script = [
+'''
+echo "
+----------------------------------------
+Usage: cargo make [TASK]
+Available Tasks:
+  cpp_wrapper - Build the C++ wrapper.
+  java_wrapper - Build the Java wrapper.
+  all_wrappers - Build all wrappers.
+You can pass additional arguments to each build task by appending them after the task name.
+For example: cargo make cpp_wrapper --release
+----------------------------------------"
+'''
+]
+
+[tasks.default]
+alias = "print_help"
+
+[tasks.cpp_wrapper]
+description = "Build C++ wrapper"
+script = '''
+cargo build --features "cpp_wrapper" ${@}
+OUT_PATH=$(cat ./target/out_path.txt)
+
+EXECUTABLE_DIR=$OUT_PATH
+# Loop to find libmag_calib.so and copy it to TARGET_DIR
+while true; do
+  # Check if libmag_calib.so exists in the current EXECUTABLE_DIR
+  if [ -f "$EXECUTABLE_DIR/libmag_calib.so" ]; then
+    echo "Found libmag_calib.so in $EXECUTABLE_DIR"
+    parent_dir=$(dirname "$EXECUTABLE_DIR")
+    TARGET_DIR=./wrappers/cpp/$(basename "$parent_dir")
+    mkdir -p "$TARGET_DIR"
+    cp "$EXECUTABLE_DIR/libmag_calib.so" "$TARGET_DIR"
+    echo "libmag_calib.so copied to $TARGET_DIR"
+    exit 0
+  else
+    # Move to the parent directory
+    EXECUTABLE_DIR=$(dirname "$EXECUTABLE_DIR")
+    # If we've reached the root directory without finding the file, exit the loop
+    if [ "$EXECUTABLE_DIR" = $CARGO_MAKE_CRATE_TARGET_DIRECTORY ]; then
+      echo "Could not find libmag_calib.so in any parent directory."
+      exit 1
+    fi
+  fi
+done
+
+rm -rf ./target/out_path.txt
+'''
+
+[tasks.java_wrapper]
+description = "Build the java wrapper"
+script = '''
+cargo build --features "java_wrapper" ${@}
+OUT_PATH=$(cat ./target/out_path.txt)
+
+EXECUTABLE_DIR=$OUT_PATH
+# Loop to find libmag_calib.so and copy it to TARGET_DIR
+while true; do
+  # Check if libmag_calib.so exists in the current EXECUTABLE_DIR
+  if [ -f "$EXECUTABLE_DIR/libmag_calib.so" ]; then
+    echo "Found libmag_calib.so in $EXECUTABLE_DIR"
+    parent_dir=$(dirname "$EXECUTABLE_DIR")
+    TARGET_DIR=./wrappers/java/$(basename "$parent_dir")
+    mkdir -p "$TARGET_DIR"
+    cp "$EXECUTABLE_DIR/libmag_calib.so" "$TARGET_DIR"
+    echo "libmag_calib.so copied to $TARGET_DIR"
+    exit 0
+  else
+    # Move to the parent directory
+    EXECUTABLE_DIR=$(dirname "$EXECUTABLE_DIR")
+    # If we've reached the root directory without finding the file, exit the loop
+    if [ "$EXECUTABLE_DIR" = $CARGO_MAKE_CRATE_TARGET_DIRECTORY ]; then
+      echo "Could not find libmag_calib.so in any parent directory."
+      exit 1
+    fi
+  fi
+done
+
+rm -rf ./target/out_path.txt
+'''
+
+[tasks.all_wrappers]
+description = "Build all wrappers"
+dependencies = ["cpp_wrapper", "java_wrapper"]

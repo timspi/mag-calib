@@ -1,0 +1,5 @@
+[target.aarch64-linux-android]
+linker = "<fillme>"
+
+[target.armv7-linux-androideabi]
+linker = "<fillme>"
