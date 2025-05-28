@@ -6,7 +6,6 @@ use std::fmt::Display;
 
 mod ffi;
 pub mod online_calibrator;
-// pub mod online_calibrator2;
 use std::f64::consts::PI;
 
 #[derive(Debug)]
@@ -519,42 +518,8 @@ impl SphericalDownSampler {
         target_points
     }
 
-    pub fn fill_percentage(&mut self, accept_bins_as_filled_by_n_surrounding_cells: usize) -> f64 {
-        if accept_bins_as_filled_by_n_surrounding_cells == 0 {
-            return self.buckets.len() as f64 / (self.lon_div * self.height_div) as f64;
-        }
-
-        let mut filled_cells = 0;
-        for i in 0..self.lon_div {
-            for j in 0..self.height_div {
-                let key = (i, j);
-                if self.buckets.contains_key(&key) {
-                    filled_cells += 1;
-                } else {
-                    //check if the cell is surrounded by at least 6 other cells
-                    let mut surrounding_cells = 0;
-                    for di in -1..=1 {
-                        for dj in -1..=1 {
-                            if di == 0 && dj == 0 {
-                                continue;
-                            }
-                            let ni = (i as isize + di).rem_euclid(self.lon_div as isize) as usize;
-                            let nj =
-                                (j as isize + dj).rem_euclid(self.height_div as isize) as usize;
-                            if self.buckets.contains_key(&(ni, nj)) {
-                                surrounding_cells += 1;
-                            }
-                        }
-                    }
-                    if surrounding_cells >= accept_bins_as_filled_by_n_surrounding_cells {
-                        filled_cells += 1;
-                        //mark this cell as filled by filling an empty cell
-                        self.buckets.insert(key, SphericalCell::new());
-                    }
-                }
-            }
-        }
-        filled_cells as f64 / (self.lon_div * self.height_div) as f64
+    pub fn fill_fraction(&mut self) -> f64 {
+        return self.buckets.len() as f64 / (self.lon_div * self.height_div) as f64;
     }
 }
 

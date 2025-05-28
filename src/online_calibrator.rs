@@ -51,9 +51,6 @@ impl OnlineMagCalibratorParameters {
     }
 }
 
-//on every fit, we renormalize the entire collected points, fit, and then un-normalize the fitted irons
-//as such, downsampler is only used for the sphere covering part, and not to sample points from buckets
-//see online_calibrator2 for a more advanced version that does not work
 pub struct OnlineMagCalibrator {
     calibration_state: CalibrationState,
     stats: StatisticsAccumulator,
@@ -163,7 +160,7 @@ impl OnlineMagCalibrator {
                     None,
                 )
                 .expect("cant fail here, s_in_bin is None");
-            self.last_cover_percentage = self.downsampler.fill_percentage(0);
+            self.last_cover_percentage = self.downsampler.fill_fraction();
 
             self.calibration_state = CalibrationState::SphereCovering {
                 irons: irons,
@@ -183,7 +180,7 @@ impl OnlineMagCalibrator {
                 .add_points(&new_calibrated_points, [0.0; 3].into(), None)
                 .expect("cant fail here, s_in_bin is None");
 
-            self.last_cover_percentage = self.downsampler.fill_percentage(0);
+            self.last_cover_percentage = self.downsampler.fill_fraction();
 
             if self.last_cover_percentage > self.params.acceptable_cover_percentage {
                 self.calibration_state = CalibrationState::ProducingCandidateFit;
@@ -249,12 +246,12 @@ impl OnlineMagCalibrator {
                     Some(&self.all_collected_rawpoints),
                 )
                 .expect("s_in_bin and s_out_bin should be of the same size");
-            self.last_cover_percentage = self.downsampler.fill_percentage(0);
+            self.last_cover_percentage = self.downsampler.fill_fraction();
             if self.last_cover_percentage < self.params.acceptable_cover_percentage {
                 log::warn!("mag calibrator tried to produce a rough iron fit, but the sphere cover was reduced from {} to {},
                  as such, more points are required, heading back to sphere covering",
                     self.last_cover_percentage,
-                    self.downsampler.fill_percentage(0),
+                    self.downsampler.fill_fraction(),
                 );
                 self.calibration_state = CalibrationState::SphereCovering {
                     irons: rough_irons,

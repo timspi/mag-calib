@@ -100,7 +100,7 @@ fn offline_calib() {
         .unwrap();
     println!(
         "fill percentage of calibrated points: {}",
-        downsampler.fill_percentage(0)
+        downsampler.fill_fraction()
     );
 
     let heatmap_html = plots::heatmap_buckets(&downsampler, None);
