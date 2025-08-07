@@ -71,15 +71,15 @@ impl Irons {
     pub fn calibrate_points(&self, s: &[[f64; 3]]) -> Vec<[f64; 3]> {
         let mut out = Vec::with_capacity(s.len());
         for i in 0..s.len() {
-            let x = s[i][0];
-            let y = s[i][1];
-            let z = s[i][2];
-
-            let col = Vector3::new(x, y, z);
-            let calibrated = self.soft * (col - self.hard);
-            out.push([calibrated.x, calibrated.y, calibrated.z]);
+            out.push(self.calibrate_point(&s[i]));
         }
         out
+    }
+
+    pub fn calibrate_point(&self, s: &[f64; 3]) -> [f64; 3] {
+        let col = Vector3::from_column_slice(s);
+        let calibrated = self.soft * (col - self.hard);
+        [calibrated.x, calibrated.y, calibrated.z]
     }
 
     pub fn scale_soft(mut self, scale: f64) -> Self {
