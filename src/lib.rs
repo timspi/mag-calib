@@ -4,6 +4,9 @@ type Matrix10<T> = SMatrix<T, 10, 10>;
 use std::collections::BTreeMap;
 use std::fmt::Display;
 
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
+
 mod ffi;
 pub mod online_calibrator;
 use std::f64::consts::PI;
@@ -47,6 +50,8 @@ impl Display for MagCalibErrors {
         }
     }
 }
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone)]
 pub struct Irons {
     pub soft: Matrix3<f64>,
